@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+  <link rel="stylesheet" href="./index.css">
+  <style>
+    *{padding: 0;margin: 0;user-select: none;}
+  </style>
+</head>
+<body>
+  <div id="app">
+    <div class="box">
+      <div v-if="goods.length">
+        <div class="menu">购物清单</div>
+        <div>
+          <table border="1" cellspacing="0" cellpadding="5" width="800px">
+            <thead>
+              <tr>
+                <th>
+                  <label for="all">
+                    <input type="checkbox" id="all" v-model="agree" @change="allcheck">
+                    <em>全选</em>
+                  </label>
+                </th>
+                <th>商品</th>
+                <th>数量</th>
+                <th>单价（元）</th>
+                <th>金额（元）</th>
+                <th>操作</th>
+              </tr>
+            </thead>
+            <tbody align="center">
+              <tr v-for="(item, index) in goods" :key="item.id">
+                <td>
+                  <input type="checkbox" v-model="item.isbool" @change="othercheck">
+                </td>
+                <td>
+                  <p>{{item.title}}</p>
+                </td>
+                <td>
+                  <div class="btnbox">
+                    <button class="btnleft" @click="subitems(index)" :disabled="item.count==1">-</button>
+                  <em>{{item.count}}</em>
+                  <button class="btnright" @click="additems(index)"  :disabled="item.count==5">+</button>
+                  </div>
+                </td>
+                <td>
+                  <span>
+                    ￥{{item.price.toFixed(2)}}
+                  </span>
+                </td>
+                <td>
+                  <span>
+                    ￥{{(item.price * item.count).toFixed(2)}}
+                  </span>
+                </td>
+                <td>
+                  <button @click="deletecheck(index)">删除</button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div v-else>卖完啦</div>
+      <div class="operation">
+        <div>
+          <button class="operabtn" @click="deleteother">删除选中</button>
+        </div>
+        <div>
+          <p>
+            <span>{{totalcount()}}</span>
+            <em>件商品（不含运费）</em>  
+          </p>
+          <span>{{totalprice()}}</span>
+          <button class="settle" @click="settlement">去结算</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script src="./vue.js"></script>
+  <script>
+    let vm = new Vue({
+      el:'#app',
+      data:{
+        goods:[
+          {id:'01',title:'旧电脑',imgsrc:'./logo.png',price:12.00,count:1,isbool:false},
+          {id:'02',title:'旧彩电',imgsrc:'./logo.png',price:10.00,count:1,isbool:false},
+          {id:'03',title:'旧冰箱',imgsrc:'./logo.png',price:10.00,count:1,isbool:false},
+        ],
+        agree:false,
+      },
+      methods: {
+        // 全选
+        allcheck(){
+          this.goods.map(item => {
+            item.isbool = this.agree
+          })
+        },
+        // 单选全部选中才全选
+        othercheck(){
+          let len = this.goods.filter(item => item.isbool === true).length;
+          if(len == this.goods.length){
+            this.agree = true
+          }else{
+            this.agree = false
+          }
+        },
+        // 增加商品
+        additems(index){
+          this.goods[index].count++
+        },
+        // 减少商品
+        subitems(index){
+          this.goods[index].count--
+        },
+        // 删除商品（单选）
+        deletecheck(index){
+          this.goods[index].isbool && (()=>{
+            if(window.confirm('是否删除？')){
+              this.goods.splice(index,1);
+            }
+          })()
+        },
+        // 删除选中（多选）
+        deleteother(){
+          if(!!this.goods.find(item => item.isbool == true)){
+          this.goods = this.goods.filter(item => item.isbool == false);
+          }else{
+            alert('未选中内容')
+          }
+           // 全选后删除按钮恢复未选中状态
+           this.agree = false;
+        },
+        // 计算总价
+        totalprice(){
+         let arr =  this.goods.filter(item => item.isbool == true);
+          let total = arr.reduce((prev,cuur)=>{
+            return prev + cuur.price*cuur.count
+          },0)
+          return '￥' + total.toFixed(2)
+        },
+        // 计算购买总数
+        totalcount(){
+         return this.goods.filter(item => item.isbool == true).length;
+        },
+        // 结算后取消选中
+        settlement(){
+          this.goods.map(item => item.isbool = false);
+          this.agree = false
+        }
+      },
+    })
+  </script>
+</body>
+</html>
